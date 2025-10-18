@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Emoji Quest RPG (Final)</title>
+  <style>
+    :root{
+      --bg1:#E8F7FF; --bg2:#FFF8E1; --card:#FFFFFF; --accent:#4FC3F7; --accent-2:#FFD54F; --success:#4CAF50; --danger:#E57373; --muted:#9E9E9E; --text-color: #1A202C; --input-border: #eee;
+      --radius:14px; --shadow: 0 6px 18px rgba(18,35,48,0.08);
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    body.dark-mode {
+      --bg1:#1A202C; --bg2:#2D3748; --card:#2D3748; --text-color:#F7FAFC; --muted:#A0AEC0; --input-border: #4A5568;
+      --shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+    *{ box-sizing:border-box; margin: 0; padding: 0; }
+    html { transition: background-color 0.3s ease; }
+    html,body{ height:100%; border:0; overflow: hidden; }
+    body{ background:linear-gradient(135deg,var(--bg1),var(--bg2)); color:var(--text-color); transition: background 0.3s ease, color 0.3s ease; padding: 28px 0; }
+    .app{ max-width:760px; margin:0 auto; padding:0 20px; }
+    body.dark-mode { background-color: #1A202C; }
+    
+    header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px }
+    .brand{ display:flex; align-items:center; gap:12px }
+    .logo{ width:56px; height:56px; border-radius:12px; background: linear-gradient(180deg, #9E9E9E, #616161); display:flex; align-items:center; justify-content:center; font-size:26px; color:#fff; box-shadow:var(--shadow) }
+    h1{ font-size:20px; }
+    .meta{ font-size:14px; color:var(--muted) }
+    #darkModeToggle { background: none; border: none; font-size: 24px; cursor: pointer; padding: 5px; border-radius: 8px; line-height: 1; }
+    body.dark-mode #darkModeToggle { color: #FFD54F; }
+    .card{ background:var(--card); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow); transition: background 0.3s ease; }
+    .level-bar{ display:flex; align-items:center; gap:12px; margin-bottom:12px }
+    .level-info{ flex:1 }
+    .progress-wrap{ height:12px; background:rgba(0,0,0,0.1); border-radius:12px; overflow:hidden }
+    .progress{ height:100%; background:linear-gradient(90deg,var(--accent),var(--accent-2)); width:0%; transition:width 500ms ease }
+    .equations{ display:flex; flex-direction:column; gap:10px; margin:10px 0 }
+    .eq{ display:flex; align-items:center; gap:12px; padding:12px; border-radius:10px; background:linear-gradient(90deg, var(--card), var(--bg1)); font-size:18px; border: 1px solid var(--input-border); transition: background 0.3s ease, border-color 0.3s ease; }
+    .eq .lhs{ font-weight:700 }
+    .input-row{ display:flex; gap:12px; align-items:center; margin-top:12px }
+    input[type=number]{ flex:1; padding:12px; border-radius:10px; border:1px solid var(--input-border); font-size:18px; background-color: var(--card); color: var(--text-color); transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease; }
+    input[type=number]::placeholder { color: var(--muted); }
+    button{ background:var(--accent); color:#042; border:0; padding:12px 16px; border-radius:10px; font-weight:700; cursor:pointer; box-shadow:0 6px 14px rgba(79,195,247,0.18) }
+    button.secondary{ background:var(--card); color:var(--accent); border:1px solid var(--accent); }
+    button.ghost{ background:transparent; box-shadow:none; border:1px dashed var(--muted); color:var(--muted) }
+    .feedback{ margin-top:12px; min-height:44px; display:flex; align-items:center; gap:10px }
+    .msg{ padding:10px 14px; border-radius:10px; background:var(--card); border:1px solid var(--input-border); color:var(--muted) }
+    .msg.success{ background:linear-gradient(90deg,#f0fff4,#e6fff0); border-color:#d6f6df; color:var(--success); font-weight:700 }
+    .msg.error{ background:linear-gradient(90deg,#fff6f6,#fff2f2); border-color:#ffdede; color:var(--danger); font-weight:700 }
+    body.dark-mode .msg.success { background: rgba(76, 175, 80, 0.15); border-color: rgba(76, 175, 80, 0.4); color: #66BB6A; }
+    body.dark-mode .msg.error { background: rgba(229, 115, 115, 0.15); border-color: rgba(229, 115, 115, 0.4); color: #EF5350; }
+    .emoji-big{ font-size:46px; display:inline-block; transform-origin:center; animation: none }
+    .bounce{ animation:bounce 700ms ease }
+    @keyframes bounce{ 0%{transform:translateY(0)} 40%{transform:translateY(-14px)} 100%{transform:translateY(0)} }
+    .confetti-canvas{ position:fixed; left:0; top:0; right:0; bottom:0; pointer-events:none }
+    footer{ display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding: 0 20px; }
+    .small{ font-size:13px; color:var(--muted) }
+    .post-game-buttons { display: flex; justify-content: center; gap: 15px; margin-top: 20px; flex-wrap: wrap; }
+    .secret-button { background: linear-gradient(145deg, #FFD700, #FBBF24); color: #4A2E07; border: 2px solid #D97706; font-weight: 800; text-shadow: 0 1px 1px rgba(255,255,255,0.2); box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3); padding: 12px 24px; }
+    .boss-button { background: linear-gradient(145deg, #EF4444, #DC2626); color: #fff; border: 2px solid #991B1B; font-weight: 800; text-shadow: 0 1px 1px rgba(0,0,0,0.2); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); padding: 12px 24px; }
+    .portal-button { background: #111; color: #fff; border: 2px solid #fff; font-weight: 800; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); padding: 12px 24px; }
+    body.dark-mode .portal-button { background: #000; border: 2px solid #eee; }
+    .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .secret-content { background: #111; padding: 25px; border-radius: 12px; text-align: center; color: #eee; }
+    #snakeCanvas { background: #000; border: 2px solid #444; margin-top: 10px; }
+    .secret-content p, .boss-content p { margin-top: 10px; font-size: 14px; color: var(--muted); }
+    .secret-content button, .boss-content button { margin-top: 15px; background: #333; color: #fff; border: 1px solid #555; }
+    .boss-content { background: var(--card); color: var(--text-color); width: 90%; max-width: 500px; padding: 25px; border-radius: 12px; text-align: center; border: 2px solid var(--danger); }
+    .boss-content h2 { color: var(--danger); }
+    .boss-content .eq { font-size: 22px; justify-content: center; }
+    
+    /* --- ESTILOS DO PORTAL E RPG (VERSÃO SIMPLIFICADA) --- */
+    #portalAnimationOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 2000; display: flex; align-items: center; justify-content: center; background: black; opacity: 0; transition: opacity 1s ease; pointer-events: none; }
+    .portal-animation { width: 4px; height: 4px; border-radius: 50%; background: #fff; box-shadow: 0 0 20px 10px #fff; animation: portal-open 6s ease-in-out forwards; }
+    @keyframes portal-open { 0% { transform: scale(0.1); opacity: 0; } 15% { opacity: 1; } 100% { transform: scale(200); opacity: 1; } }
+    #rpgWorld { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 1500; }
+    #player { position: absolute; width: 20px; height: 20px; background: white; border-radius: 2px; }
+
+    @media (max-width:520px){ body{padding:12px 0;} .app{padding:0 12px;} .logo{width:48px;height:48px} footer{flex-direction: column; gap: 8px;} }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand">
+        <div class="logo">⚔️</div>
+        <div><h1>Emoji Quest RPG</h1><div class="meta">Sua jornada matemática começa.</div></div>
+      </div>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <div class="meta">Nível <span id="level-number">1</span> de <span id="level-total">10</span></div>
+        <button id="darkModeToggle" title="Alternar modo noturno">🌙</button>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="level-bar">
+        <div class="level-info">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-weight:800" id="level-title">Frutas 🍎🍌</div>
+            <div class="small" style="margin-left:8px;color:var(--muted)" id="level-sub">Iniciante</div>
+          </div>
+          <div style="margin-top:8px" class="progress-wrap"><div id="progress" class="progress"></div></div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:800">Pontuação</div><div id="score" style="font-size:18px">0</div>
+        </div>
+      </div>
+      <div class="equations">
+        <div class="eq"><span class="lhs" id="eq1">🍎 + 🍎 = 10</span></div>
+        <div class="eq"><span class="lhs" id="eq2">🍎 + 🍌 = 12</span></div>
+        <div class="eq" id="maybeEq"><span class="lhs" id="eq3">❓</span></div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center;">
+        <div style="font-size:36px" class="emoji-big" id="mainEmoji">🍌</div>
+        <div style="flex:1">
+          <div class="input-row">
+            <input id="answer" type="number" placeholder="Digite a resposta" />
+            <button id="checkBtn">Verificar</button>
+          </div>
+          <div class="feedback" aria-live="polite"><div id="feedbackMsg" class="msg">Dica: pense na primeira equação para descobrir o valor.</div></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;margin-top:14px">
+        <button id="nextBtn" class="secondary" style="display:none">Próximo Nível ▶</button>
+        <button id="repeatBtn" class="ghost">Repetir nível</button>
+        <button id="resetBtn" class="ghost">Reiniciar Jogo</button>
+        <div style="flex:1"></div>
+        <div id="levelProgressTxt" class="small">Progresso: 0/10</div>
+      </div>
+    </div>
+
+    <div class="post-game-buttons">
+      <button id="secretRoomBtn" class="secret-button" style="display:none;">🔑 Sala Secreta</button>
+      <button id="bossModeBtn" class="boss-button" style="display:none;">☠️ Chefão</button>
+      <button id="portalBtn" class="portal-button" style="display:none;">🌀 Portal</button>
+    </div>
+  </div>
+  
+  <footer>
+      <div class="small">Use o teclado para digitar a resposta. O jogo salva automaticamente no navegador.</div>
+      <button id="shortcutBtn" class="ghost" style="padding: 5px 8px; font-size: 12px;">Atalho (Teste)</button>
+      <div class="small">Feito por Elyanderson — Protótipo</div>
+  </footer>
+
+  <canvas id="confetti" class="confetti-canvas"></canvas>
+  
+  <div id="secretRoomOverlay" class="overlay" style="display:none;">
+    <div class="secret-content">
+      <h2>Snake Pixel 🐍</h2>
+      <canvas id="snakeCanvas" width="400" height="400"></canvas>
+      <p id="snakeScore">Pontos: 0</p><p>Use as setas do teclado para mover.</p>
+      <button id="closeSecretBtn">Fechar</button>
+    </div>
+  </div>
+
+  <div id="bossModeOverlay" class="overlay" style="display:none;">
+    <div class="boss-content">
+      <h2 id="bossTitle">Modo Chefão</h2>
+      <div class="equations">
+        <div class="eq"><span class="lhs" id="bossEq1"></span></div>
+        <div class="eq"><span class="lhs" id="bossEq2"></span></div>
+      </div>
+      <p id="bossQuestion" style="font-size: 20px; font-weight: bold; margin-top:15px;"></p>
+      <div class="input-row">
+        <input id="bossAnswer" type="number" placeholder="Digite a resposta" />
+        <button id="checkBossBtn">Verificar</button>
+      </div>
+      <div class="feedback" aria-live="polite"><div id="bossFeedback" class="msg">Resolva o sistema de equações.</div></div>
+      <button id="nextBossBtn" class="secondary" style="display:none;">Próximo Chefão ▶</button>
+      <button id="closeBossBtn">Sair do Modo Chefão</button>
+    </div>
+  </div>
+
+  <div id="portalAnimationOverlay" style="display:none;">
+    <div class="portal-animation"></div>
+  </div>
+  <div id="rpgWorld" style="display:none;">
+    <div id="player"></div>
+  </div>
+
+  <script>
+    const levels = [ {id:1, title:'Frutas 🍎🍌', difficulty:'Iniciante', eq:['🍎 + 🍎 = 10','🍎 + 🍌 = 12'], answer:7, emoji:'🍌'}, {id:2, title:'Lanche 🍔🍟🥤', difficulty:'Fácil', eq:['🍔 + 🍔 = 8','🍔 + 🍟 = 11','🍟 + 🥤 = 13'], answer:6, emoji:'🥤'}, {id:3, title:'Café 🍳🥐☕', difficulty:'Médio', eq:['🍳 + 🍳 = 12','🍳 + 🥐 = 18','🥐 + ☕ = 20'], answer:8, emoji:'☕'}, {id:4, title:'Bichinhos 🐶🐱', difficulty:'Fácil', eq:['🐶 + 🐶 = 8','🐶 + 🐱 = 11'], answer:7, emoji:'🐱'}, {id:5, title:'Fazenda 🐰🐮🐷', difficulty:'Médio', eq:['🐰 + 🐰 = 6','🐰 + 🐮 = 14','🐮 + 🐷 = 20'], answer:9, emoji:'🐷'}, {id:6, title:'Selva 🦁🐘🐒', difficulty:'Difícil', eq:['🦁 + 🦁 = 16','🦁 + 🐘 = 28','🐘 + 🐒 = 34'], answer:14, emoji:'🐒'}, {id:7, title:'Transporte 🚗🚲🚁', difficulty:'Médio', eq:['🚗 + 🚗 = 20','🚗 + 🚲 = 15','🚲 + 🚁 = 25'], answer:20, emoji:'🚁'}, {id:8, title:'Esportes ⚽🏀🏈', difficulty:'Difícil', eq:['⚽ + ⚽ = 14','⚽ + 🏀 = 20','🏀 - 🏈 = 5'], answer:8, emoji:'🏈'}, {id:9, title:'Clima ☀️🌧️❄️', difficulty:'Fácil', eq:['☀️ + ☀️ = 30','☀️ + 🌧️ = 22','🌧️ + ❄️ = 10'], answer:3, emoji:'❄️'}, {id:10, title:'Ferramentas 🔨🔧🔩', difficulty:'Médio', eq:['🔨 + 🔨 = 18','🔨 - 🔧 = 4','🔧 + 🔩 = 7'], answer:2, emoji:'🔩'} ];
+    const bossLevels = [ {id:1, title:'Mundo Mágico 🧙‍♂️🐉', eq:['3🧙‍♂️ + 2🐉 = 22', '2🧙‍♂️ + 3🐉 = 23'], question: 'Qual o valor de 🧙‍♂️ + 🐉?', answer: 9}, {id:2, title:'Espaço Sideral 🪐🚀', eq:['2🪐 + 🚀 = 5', '🪐 + 2🚀 = 1'], question: 'Qual o valor de 🪐?', answer: 3} ];
+
+    let state = { levelIndex: 0, score: 0, bossLevelIndex: 0, allBossesDefeated: false };
+
+    const bodyEl = document.body;
+    const appEl = document.querySelector('.app');
+    const footerEl = document.querySelector('footer');
+    const levelNumberEl = document.getElementById('level-number'), levelTotalEl = document.getElementById('level-total'), levelTitleEl = document.getElementById('level-title'), levelSubEl = document.getElementById('level-sub'), eq1 = document.getElementById('eq1'), eq2 = document.getElementById('eq2'), eq3 = document.getElementById('eq3'), mainEmoji = document.getElementById('mainEmoji'), answerInput = document.getElementById('answer'), checkBtn = document.getElementById('checkBtn'), nextBtn = document.getElementById('nextBtn'), repeatBtn = document.getElementById('repeatBtn'), resetBtn = document.getElementById('resetBtn'), feedbackMsg = document.getElementById('feedbackMsg'), scoreEl = document.getElementById('score'), progressEl = document.getElementById('progress'), levelProgressTxt = document.getElementById('levelProgressTxt'), darkModeToggle = document.getElementById('darkModeToggle');
+    const secretRoomBtn = document.getElementById('secretRoomBtn'), secretRoomOverlay = document.getElementById('secretRoomOverlay'), closeSecretBtn = document.getElementById('closeSecretBtn');
+    const bossModeBtn = document.getElementById('bossModeBtn'), bossModeOverlay = document.getElementById('bossModeOverlay'), closeBossBtn = document.getElementById('closeBossBtn'), bossTitle = document.getElementById('bossTitle'), bossEq1 = document.getElementById('bossEq1'), bossEq2 = document.getElementById('bossEq2'), bossQuestion = document.getElementById('bossQuestion'), bossAnswer = document.getElementById('bossAnswer'), checkBossBtn = document.getElementById('checkBossBtn'), bossFeedback = document.getElementById('bossFeedback'), nextBossBtn = document.getElementById('nextBossBtn');
+    const portalBtn = document.getElementById('portalBtn');
+    const shortcutBtn = document.getElementById('shortcutBtn');
+    const portalAnimationOverlay = document.getElementById('portalAnimationOverlay');
+    const rpgWorld = document.getElementById('rpgWorld');
+    const player = document.getElementById('player');
+
+    function saveState(){ localStorage.setItem('bb_state',JSON.stringify(state)); }
+    function loadState(){ const s = localStorage.getItem('bb_state'); if(s){ try{ state = JSON.parse(s); if(typeof state.levelIndex!=='number')state.levelIndex=0; if(typeof state.score!=='number')state.score=0; if(typeof state.bossLevelIndex!=='number')state.bossLevelIndex=0; if(typeof state.allBossesDefeated!=='boolean')state.allBossesDefeated=false;}catch(e){state={levelIndex:0,score:0,bossLevelIndex:0,allBossesDefeated:false}} } }
+    function render(){ const lvl=levels[state.levelIndex]; levelNumberEl.textContent=state.levelIndex+1; levelTotalEl.textContent=levels.length; levelTitleEl.textContent=lvl.title; levelSubEl.textContent=lvl.difficulty; eq1.textContent=lvl.eq[0]||''; eq2.textContent=lvl.eq[1]||''; eq3.textContent=(lvl.eq[2]?lvl.eq[2]:'❓'); mainEmoji.textContent=lvl.emoji; scoreEl.textContent=state.score; progressEl.style.width=Math.round(((state.levelIndex)/(levels.length))*100)+'%'; levelProgressTxt.textContent=`Progresso: ${state.levelIndex}/${levels.length}`; answerInput.value=''; feedbackMsg.className='msg'; feedbackMsg.textContent='Dica: observe a primeira equação para descobrir o valor.'; nextBtn.style.display='none'; mainEmoji.classList.remove('bounce'); saveState(); }
+    
+    // Lógica do jogo principal
+    checkBtn.addEventListener('click', ()=>{
+      const val = parseFloat(answerInput.value);
+      if(Number.isNaN(val)){ feedbackMsg.className='msg error'; feedbackMsg.textContent='Insira um número válido.'; return; }
+      const correct = levels[state.levelIndex].answer;
+      if(val === correct){
+        feedbackMsg.className='msg success'; feedbackMsg.textContent='Excelente! Você acertou 🎊 +10 pontos';
+        state.score += 10; scoreEl.textContent = state.score;
+        nextBtn.style.display = 'inline-block';
+        saveState();
+      } else { feedbackMsg.className='msg error'; feedbackMsg.textContent='Ops! Tente novamente 😅'; }
+    });
+    nextBtn.addEventListener('click', ()=>{
+      if(state.levelIndex < levels.length-1){ state.levelIndex++; render(); }
+      else {
+        feedbackMsg.className='msg success'; feedbackMsg.textContent = `🎉 Parabéns! Você terminou a provação!`;
+        progressEl.style.width = '100%';
+        nextBtn.style.display = 'none';
+        secretRoomBtn.style.display = 'inline-block';
+        bossModeBtn.style.display = 'inline-block';
+      }
+    });
+    resetBtn.addEventListener('click', ()=>{
+      if (confirm('Tem certeza que deseja reiniciar o jogo?')) {
+        state = { levelIndex: 0, score: 0, bossLevelIndex: 0, allBossesDefeated: false };
+        localStorage.removeItem('bb_state');
+        secretRoomBtn.style.display='none';
+        bossModeBtn.style.display='none';
+        portalBtn.style.display='none';
+        appEl.style.display = 'block';
+        footerEl.style.display = 'flex';
+        render();
+      }
+    });
+    function applyTheme(theme) { if (theme === 'dark') { bodyEl.classList.add('dark-mode'); darkModeToggle.textContent = '☀️'; } else { bodyEl.classList.remove('dark-mode'); darkModeToggle.textContent = '🌙'; } localStorage.setItem('bb_theme', theme); }
+    darkModeToggle.addEventListener('click', () => { const currentTheme = localStorage.getItem('bb_theme') || 'light'; applyTheme(currentTheme === 'light' ? 'dark' : 'light'); });
+    answerInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') checkBtn.click(); });
+    
+    // Lógica do Modo Chefão
+    function renderBossLevel() {
+      const lvl = bossLevels[state.bossLevelIndex];
+      bossTitle.textContent = lvl.title;
+      bossEq1.textContent = lvl.eq[0];
+      bossEq2.textContent = lvl.eq[1];
+      bossQuestion.textContent = lvl.question;
+      bossAnswer.value = '';
+      bossFeedback.className = 'msg';
+      bossFeedback.textContent = 'Resolva o sistema de equações.';
+      nextBossBtn.style.display = 'none';
+    }
+    bossModeBtn.addEventListener('click', () => { bossModeOverlay.style.display = 'flex'; renderBossLevel(); });
+    checkBossBtn.addEventListener('click', () => {
+        const val = parseFloat(bossAnswer.value);
+        if(Number.isNaN(val)){ bossFeedback.className='msg error'; bossFeedback.textContent='Insira um número válido.'; return; }
+        const correct = bossLevels[state.bossLevelIndex].answer;
+        if (val === correct) {
+            bossFeedback.className = 'msg success';
+            bossFeedback.textContent = 'Incrível! Desafio do chefão concluído!';
+            nextBossBtn.style.display = 'inline-block';
+        } else {
+            bossFeedback.className = 'msg error';
+            bossFeedback.textContent = 'Não está correto. Tente novamente!';
+        }
+    });
+    nextBossBtn.addEventListener('click', () => {
+        if (state.bossLevelIndex < bossLevels.length - 1) {
+            state.bossLevelIndex++;
+            renderBossLevel();
+        } else {
+            bossFeedback.className = 'msg success';
+            bossFeedback.textContent = 'Você derrotou TODOS os chefões! O portal se abriu!';
+            nextBossBtn.style.display = 'none';
+            portalBtn.style.display = 'inline-block';
+            state.allBossesDefeated = true;
+            saveState();
+        }
+    });
+    closeBossBtn.addEventListener('click', () => { bossModeOverlay.style.display = 'none'; });
+    
+    // --- LÓGICA DO PORTAL E RPG (NOVA VERSÃO SIMPLIFICADA) ---
+    const playerState = { x: 0, y: 0, speed: 4 };
+    const keysPressed = {};
+    let rpgLoopId;
+
+    function rpgGameLoop() {
+        if(keysPressed['w']) playerState.y -= playerState.speed;
+        if(keysPressed['s']) playerState.y += playerState.speed;
+        if(keysPressed['a']) playerState.x -= playerState.speed;
+        if(keysPressed['d']) playerState.x += playerState.speed;
+
+        if(playerState.x < 0) playerState.x = 0;
+        if(playerState.y < 0) playerState.y = 0;
+        if(playerState.x + player.offsetWidth > window.innerWidth) playerState.x = window.innerWidth - player.offsetWidth;
+        if(playerState.y + player.offsetHeight > window.innerHeight) playerState.y = window.innerHeight - player.offsetHeight;
+
+        player.style.left = `${playerState.x}px`;
+        player.style.top = `${playerState.y}px`;
+
+        rpgLoopId = requestAnimationFrame(rpgGameLoop);
+    }
+    
+    portalBtn.addEventListener('click', () => {
+        portalAnimationOverlay.style.display = 'flex';
+        // Força o navegador a recalcular o estilo para a animação reiniciar
+        void portalAnimationOverlay.offsetWidth;
+        portalAnimationOverlay.style.opacity = '1';
+        
+        // Esconde a interface principal e inicia o RPG após a animação
+        setTimeout(() => {
+            appEl.style.display = 'none';
+            footerEl.style.display = 'none';
+            document.querySelector('.post-game-buttons').style.display = 'none';
+            
+            rpgWorld.style.display = 'block';
+
+            // Posiciona o jogador no centro e inicia o loop do jogo
+            playerState.x = window.innerWidth / 2 - player.offsetWidth / 2;
+            playerState.y = window.innerHeight / 2 - player.offsetHeight / 2;
+            
+            document.addEventListener('keydown', (e) => { keysPressed[e.key.toLowerCase()] = true; });
+            document.addEventListener('keyup', (e) => { keysPressed[e.key.toLowerCase()] = false; });
+            rpgGameLoop();
+
+        }, 5900); // Sincronizado para perto do final da animação de 6s
+
+        // Esconde a animação após ela terminar
+        setTimeout(() => {
+            portalAnimationOverlay.style.opacity = '0';
+            setTimeout(() => {
+                portalAnimationOverlay.style.display = 'none';
+            }, 1000); // Garante que a transição de opacidade termine
+        }, 6000);
+    });
+    
+    // --- LÓGICA DO ATALHO ---
+    shortcutBtn.addEventListener('click', () => {
+      if(confirm('Ativar atalho? Isso pulará para o final do jogo.')){
+        document.querySelector('.card').style.display = 'none';
+        secretRoomBtn.style.display = 'inline-block';
+        bossModeBtn.style.display = 'inline-block';
+        portalBtn.style.display = 'inline-block';
+      }
+    });
+    
+    // init
+    loadState();
+    const savedTheme = localStorage.getItem('bb_theme') || 'light';
+    applyTheme(savedTheme);
+    if (state.levelIndex >= levels.length - 1) {
+       let savedState = localStorage.getItem('bb_state') ? JSON.parse(localStorage.getItem('bb_state')) : null;
+       if(savedState && savedState.levelIndex >= levels.length - 1) {
+           secretRoomBtn.style.display = 'inline-block';
+           bossModeBtn.style.display = 'inline-block';
+           if (state.allBossesDefeated) {
+               portalBtn.style.display = 'inline-block';
+           }
+       }
+    }
+    render();
+    window.addEventListener('resize', ()=>{ const c = document.getElementById('confetti'); if(c){c.width = window.innerWidth; c.height = window.innerHeight;} });
+  </script>
+</body>
+</html>
